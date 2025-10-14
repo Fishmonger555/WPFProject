@@ -1,0 +1,26 @@
+﻿@startuml
+package "BookLibrary.App" {
+  package "ViewModels"
+  package "WPF Views"
+}
+
+package "BookLibrary.Core" {
+  package "Services"
+  package "Models"
+  package "Enums"
+}
+
+package "BookLibrary.Data" {
+  package "Repositories"
+  package "Migrations"
+  package "DbContext"
+}
+
+node "MS SQL Server" {
+  package "Tables"
+}
+
+"BookLibrary.App" -- "BookLibrary.Core" : Uses >
+"BookLibrary.App" .> "BookLibrary.Data" : Uses >
+"BookLibrary.Data" -- "MS SQL Server" : Connects >
+@enduml
