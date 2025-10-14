@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Library
+namespace Library.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -23,6 +23,15 @@ namespace Library
         public MainWindow()
         {
             InitializeComponent();
+            this.DataContext = new ViewModels.MainWindowViewModel();
+        }
+
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is ViewModels.MainWindowViewModel viewModel)
+            {
+                viewModel.ExitApplication();
+            }
         }
     }
 }
