@@ -22,32 +22,50 @@
 
         <Menu Grid.Row="0" Background="#FFD7D7D7">
             <MenuItem Header="_File">
-                <MenuItem Header="_Exit" Click="ExitMenuItem_Click"/>
+                <MenuItem Header="_Exit" Command="{Binding ExitCommand}"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About"/>
             </MenuItem>
         </Menu>
 
-        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
-            <Grid Background="WhiteSmoke">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="Welcome to your Library!"
-                               FontSize="30"
-                               Foreground="SteelBlue"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,20"/>
-                    <TextBlock Text="content will go here"
-                               FontSize="16"
-                               Foreground="DimGray"
-                               HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Grid>
-        </Border>
+        <Grid Grid.Row="1" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5,5,5,10">
+                <Button Content="Add Book" Width="100" Margin="0,0,10,0" Command="{Binding AddBookCommand}"/>
+                <Button Content="Edit Book" Width="100" Margin="0,0,10,0" Command="{Binding EditBookCommand}" IsEnabled="{Binding CanEditOrDeleteBook}"/>
+                <!-- <Button Content="Delete Book" Width="100" Margin="0,0,10,0" Command="{Binding DeleteBookCommand}" IsEnabled="{Binding CanEditOrDeleteBook}"/> -->
+            </StackPanel>
+
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Books}"
+                    SelectedItem="{Binding SelectedBook, UpdateSourceTrigger=PropertyChanged}"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    IsReadOnly="True"
+                    SelectionMode="Single"
+                    GridLinesVisibility="All"
+                    HeadersVisibility="Column"
+                    CanUserSortColumns="True"
+                    CanUserReorderColumns="True"
+                    CanUserResizeColumns="True"
+                    >
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="*"/>
+                    <DataGridTextColumn Header="Author" Binding="{Binding Author}" Width="*"/>
+                    <DataGridTextColumn Header="ISBN" Binding="{Binding ISBN}" Width="150"/>
+                    <DataGridTextColumn Header="Pub. Year" Binding="{Binding PublicationYear}" Width="80"/>
+                    <DataGridTextColumn Header="Copies" Binding="{Binding AvailableCopies}" Width="60"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
 
         <StatusBar Grid.Row="2" Background="#FFD7D7D7">
             <StatusBarItem>
-                <TextBlock Text="Ready"/>
+                <TextBlock Text="{Binding StatusMessage}"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>
