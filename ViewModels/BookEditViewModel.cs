@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Library.Models;
+using System.Collections.ObjectModel;
 using Library.Services; // We'll create this for DB operations later
 
 namespace Library.ViewModels
@@ -15,6 +16,8 @@ namespace Library.ViewModels
         void AddBook(Book book);
         void UpdateBook(Book book);
         Book GetBookById(int id);
+
+        ObservableCollection<Book> GetAllBooks();
     }
 
     public class BookEditViewModel : INotifyPropertyChanged, IDataErrorInfo
@@ -46,6 +49,11 @@ namespace Library.ViewModels
 
         private readonly IDatabaseService _databaseService;
         private readonly Window _ownerWindow;
+
+        public BookEditViewModel() : this(new Book { Title = "Design-Time Book", Author = "Designer" }, new MockDatabaseService(), null)
+        {
+            //
+        }
 
         public BookEditViewModel(Book bookToEdit, IDatabaseService databaseService, Window ownerWindow)
         {

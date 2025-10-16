@@ -30,7 +30,7 @@ namespace Library.Views
         {
             if (this.DataContext is ViewModels.MainWindowViewModel viewModel)
             {
-                viewModel.ExitApplication();
+                viewModel.ExitApplication(this);
             }
         }
     }

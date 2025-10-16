@@ -102,7 +102,7 @@ namespace Library.ViewModels
 
         public MainWindowViewModel()
         {
-            _databaseService = new MockDatabaseService();
+            _databaseService = new SqlDatabaseService();
 
             LoadBooks();
 
@@ -138,7 +138,7 @@ namespace Library.ViewModels
             return SelectedBook != null;
         }
 
-        private void ExitApplication(object parameter)
+        public void ExitApplication(object parameter)
         {
             Application.Current.Shutdown();
         }
