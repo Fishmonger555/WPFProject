@@ -2,13 +2,15 @@
 using Library.Models;
 using Library.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql;
+using Pomelo.EntityFrameworkCore.MySql.Storage;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Configuration;
 
 namespace Library.Services
 {
@@ -21,12 +23,11 @@ namespace Library.Services
             return new LibraryDbContext(optionsBuilder.Options);
         }
 
+
         public void AddBook(Book book)
         {
             using (var context = CreateDbContext())
             {
-                // EF Core automatically assigns an ID if it's an int and not provided
-                // if the database is configured for identity.
                 context.Books.Add(book);
                 context.SaveChanges();
             }

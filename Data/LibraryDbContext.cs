@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Library.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Library.Models;
-using System.Configuration;
+using Pomelo.EntityFrameworkCore.MySql;
 
 namespace Library.Data
 {
@@ -27,26 +29,9 @@ namespace Library.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                // IMPORTANT: Replace this with your actual connection string.
-                // For .NET Framework, this is typically read from App.config.
-                // For this example, we'll use a placeholder and explain how to configure it.
-                // If you have an App.config file, it should look something like:
-                // <configuration>
-                //   <connectionStrings>
-                //     <add name="LibraryDatabase" connectionString="Server=(localdb)\MSSQLLocalDB;Database=LibraryDB;Trusted_Connection=True;MultipleActiveResultSets=true" providerName="System.Data.SqlClient" />
-                //   </connectionStrings>
-                // </configuration>
-
-                // If you don't have App.config or want to hardcode for now (NOT recommended for production):
-                // optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=LibraryDB;Trusted_Connection=True;MultipleActiveResultSets=true");
-
-                // Best practice for .NET Framework: Read from App.config
                 var connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["LibraryDatabase"]?.ConnectionString;
                 if (string.IsNullOrEmpty(connectionString))
                 {
-                    // Fallback if connection string is not found (or for initial setup)
-                    // You MUST configure this in App.config!
-                    // For example: optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=LibraryDB;Trusted_Connection=True;MultipleActiveResultSets=true");
                     throw new InvalidOperationException("Connection string 'LibraryDatabase' not found in App.config or is empty.");
                 }
                 optionsBuilder.UseSqlServer(connectionString);
@@ -57,7 +42,6 @@ namespace Library.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Example: Fluent API configuration for Book if needed
             modelBuilder.Entity<Book>()
                 .HasIndex(b => b.ISBN)
                 .IsUnique();
