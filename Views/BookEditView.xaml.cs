@@ -1,23 +1,15 @@
-﻿using Library.ViewModels;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Windows;
+using Library.ViewModels;
 
 namespace Library.Views
 {
-    /// <summary>
-    /// Interaction logic for BookEditView.xaml
-    /// </summary>
     public partial class BookEditView : Window
     {
-        public BookEditViewModel ViewModel { get; private set; }
-
-        public BookEditView(BookEditViewModel viewModel)
+        public BookEditView()
         {
             InitializeComponent();
-
-            ViewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
-            this.DataContext = ViewModel;
         }
     }
 }

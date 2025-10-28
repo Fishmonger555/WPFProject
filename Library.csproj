@@ -196,8 +196,22 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Data\LibraryDbContext.cs" />
+    <Compile Include="Migrations\20251021071816_InitialCreate.cs" />
+    <Compile Include="Migrations\20251021071816_InitialCreate.Designer.cs">
+      <DependentUpon>20251021071816_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20251028065838_AddAuthorAndPublisherModels.cs" />
+    <Compile Include="Migrations\20251028065838_AddAuthorAndPublisherModels.Designer.cs">
+      <DependentUpon>20251028065838_AddAuthorAndPublisherModels.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\LibraryDbContextModelSnapshot.cs" />
+    <Compile Include="Models\Author.cs" />
     <Compile Include="Models\Book.cs" />
+    <Compile Include="Models\Publisher.cs" />
+    <Compile Include="Services\IDatabaseService.cs" />
+    <Compile Include="Services\MockDatabaseService.cs" />
     <Compile Include="Services\SqlDatabaseService.cs" />
     <Compile Include="ViewModels\BookEditViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />

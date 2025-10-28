@@ -1,68 +1,166 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Library.Models;
-using System.Collections.ObjectModel;
-using Library.Services; // We'll create this for DB operations later
+using Library.Services;
+using Library.Commands;
 
 namespace Library.ViewModels
 {
-    public interface IDatabaseService
-    {
-        void AddBook(Book book);
-        void UpdateBook(Book book);
-        Book GetBookById(int id);
-
-        ObservableCollection<Book> GetAllBooks();
-    }
-
-    public class BookEditViewModel : INotifyPropertyChanged, IDataErrorInfo
+    public class BookEditViewModel : INotifyPropertyChanged
     {
         private Book _book;
         public Book Book
         {
             get { return _book; }
+            set { _book = value; OnPropertyChanged(nameof(Book)); }
+        }
+
+        private IDatabaseService _databaseService;
+        private Window _ownerWindow;
+
+        private ObservableCollection<Author> _authors;
+        public ObservableCollection<Author> Authors
+        {
+            get { return _authors; }
+            set { _authors = value; OnPropertyChanged(nameof(Authors)); }
+        }
+
+        private Author _selectedAuthor;
+        public Author SelectedAuthor
+        {
+            get { return _selectedAuthor; }
             set
             {
-                _book = value;
-                OnPropertyChanged(nameof(Book));
+                _selectedAuthor = value;
+                OnPropertyChanged(nameof(SelectedAuthor));
+                if (_book != null)
+                {
+                    if (_selectedAuthor != null)
+                    {
+                        _book.AuthorId = _selectedAuthor.Id;
+                        _book.Author = _selectedAuthor;
+                        _book.AuthorNameForDisplay = _selectedAuthor.Name;
+                    }
+                    else
+                    {
+                        _book.AuthorId = null;
+                        _book.Author = null;
+                        _book.AuthorNameForDisplay = string.Empty;
+                    }
+                }
                 ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
-                ValidateBookProperties();
             }
         }
 
-        private ICommand _saveCommand;
-        public ICommand SaveCommand
+        private ObservableCollection<Publisher> _publishers;
+        public ObservableCollection<Publisher> Publishers
         {
-            get { return _saveCommand ?? (_saveCommand = new RelayCommand(SaveBook, CanSaveBook)); }
+            get { return _publishers; }
+            set { _publishers = value; OnPropertyChanged(nameof(Publishers)); }
         }
 
-        private ICommand _cancelCommand;
-        public ICommand CancelCommand
+        private Publisher _selectedPublisher;
+        public Publisher SelectedPublisher
         {
-            get { return _cancelCommand ?? (_cancelCommand = new RelayCommand(CancelEdit)); }
+            get { return _selectedPublisher; }
+            set
+            {
+                _selectedPublisher = value;
+                OnPropertyChanged(nameof(SelectedPublisher));
+                if (_book != null)
+                {
+                    if (_selectedPublisher != null)
+                    {
+                        _book.PublisherId = _selectedPublisher.Id;
+                        _book.Publisher = _selectedPublisher;
+                    }
+                    else
+                    {
+                        _book.PublisherId = null;
+                        _book.Publisher = null;
+                    }
+                }
+                ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
+            }
         }
 
-        private readonly IDatabaseService _databaseService;
-        private readonly Window _ownerWindow;
-
-        public BookEditViewModel() : this(new Book { Title = "Design-Time Book", Author = "Designer" }, new MockDatabaseService(), null)
-        {
-            //
-        }
+        public ICommand SaveCommand { get; private set; }
+        public ICommand CancelCommand { get; private set; }
 
         public BookEditViewModel(Book bookToEdit, IDatabaseService databaseService, Window ownerWindow)
         {
-            _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService));
-            _ownerWindow = ownerWindow ?? throw new ArgumentNullException(nameof(ownerWindow));
+            _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService), "Database service cannot be null.");
+            _ownerWindow = ownerWindow;
 
-            Book = bookToEdit?.Clone() ?? new Book();
+            Book = bookToEdit?.Clone() as Book ?? new Book();
 
-            ValidateBookProperties();
+            LoadAuthors();
+            LoadPublishers();
+
+            if (Book != null)
+            {
+                SelectedAuthor = Authors?.FirstOrDefault(a => a.Id == Book.AuthorId);
+                SelectedPublisher = Publishers?.FirstOrDefault(p => p.Id == Book.PublisherId);
+            }
+            else
+            {
+                Book = new Book();
+            }
+
+            SaveCommand = new RelayCommand(SaveBook, CanSaveBook);
+            CancelCommand = new RelayCommand(CancelEdit);
+        }
+
+        public BookEditViewModel()
+            : this(new Book { Title = "Design-Time Book", AuthorNameForDisplay = "Designer Author" }, new MockDatabaseService(), null)
+        {
+        }
+
+        private void LoadAuthors()
+        {
+            if (_databaseService != null)
+            {
+                Authors = _databaseService.GetAllAuthors();
+                if (Book?.AuthorId != null && Authors != null)
+                {
+                    SelectedAuthor = Authors.FirstOrDefault(a => a.Id == Book.AuthorId);
+                }
+                else
+                {
+                    SelectedAuthor = null;
+                }
+            }
+            else
+            {
+                Authors = new ObservableCollection<Author>();
+                SelectedAuthor = null;
+            }
+        }
+
+        private void LoadPublishers()
+        {
+            if (_databaseService != null)
+            {
+                Publishers = _databaseService.GetAllPublishers();
+                if (Book?.PublisherId != null && Publishers != null)
+                {
+                    SelectedPublisher = Publishers.FirstOrDefault(p => p.Id == Book.PublisherId);
+                }
+                else
+                {
+                    SelectedPublisher = null;
+                }
+            }
+            else
+            {
+                Publishers = new ObservableCollection<Publisher>();
+                SelectedPublisher = null;
+            }
         }
 
         private void SaveBook(object parameter)
@@ -81,7 +179,15 @@ namespace Library.ViewModels
 
         private bool CanSaveBook(object parameter)
         {
-            return !HasErrors && Book != null && !string.IsNullOrWhiteSpace(Book.Title) && !string.IsNullOrWhiteSpace(Book.Author);
+            if (Book == null || string.IsNullOrWhiteSpace(Book.Title) || string.IsNullOrWhiteSpace(Book.AuthorNameForDisplay))
+            {
+                return false;
+            }
+
+            bool authorValid = Book.AuthorId.HasValue;
+            bool publisherValid = Book.PublisherId.HasValue || Book.PublisherId == null;
+
+            return authorValid && publisherValid;
         }
 
         private void CancelEdit(object parameter)
@@ -89,120 +195,10 @@ namespace Library.ViewModels
             _ownerWindow?.Close();
         }
 
-        private readonly Dictionary<string, string> _errors = new Dictionary<string, string>();
-        public bool HasErrors => _errors.Count > 0;
-
-        public string Error => string.Empty;
-
-        public string this[string columnName]
-        {
-            get
-            {
-                _errors.Remove(columnName);
-
-                if (Book == null) return null;
-
-                var propertyInfo = Book.GetType().GetProperty(columnName);
-                if (propertyInfo == null) return null;
-
-                var value = propertyInfo.GetValue(Book);
-                var validationContext = new ValidationContext(Book) { MemberName = columnName };
-                var validationResults = new List<ValidationResult>();
-
-                bool isValid = Validator.TryValidateProperty(value, validationContext, validationResults);
-
-                if (validationResults.Any())
-                {
-                    string errorMessages = string.Join(Environment.NewLine, validationResults.Select(vr => vr.ErrorMessage));
-                    _errors[columnName] = errorMessages;
-                    return errorMessages;
-                }
-
-                return null;
-            }
-        }
-
-
-        private void ValidateBookProperties()
-        {
-
-            foreach (var prop in Book.GetType().GetProperties())
-            {
-                if (prop.GetCustomAttributes(typeof(ValidationAttribute), true).Any())
-                {
-                    var error = this[prop.Name];
-                }
-            }
-            ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
-        }
-
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-
-    public class RelayCommand : ICommand
-    {
-        private readonly Action<object> _execute;
-        private readonly Func<object, bool> _canExecute;
-        private EventHandler _canExecuteChanged;
-
-        public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public bool CanExecute(object parameter)
-        {
-            return _canExecute == null || _canExecute(parameter);
-        }
-
-        public void Execute(object parameter)
-        {
-            _execute(parameter);
-        }
-
-        public event EventHandler CanExecuteChanged
-        {
-            add { _canExecuteChanged += value; }
-            remove { _canExecuteChanged -= value; }
-        }
-
-        public void RaiseCanExecuteChanged()
-        {
-            _canExecuteChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    public static class ValidationExtensions
-    {
-        public static bool Any(this IEnumerable<ValidationResult> source)
-        {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-            return source.Any();
-        }
-    }
-
-    public static class BookExtensions
-    {
-        public static Book Clone(this Book book)
-        {
-            if (book == null) return null;
-            return new Book
-            {
-                Id = book.Id,
-                Title = book.Title,
-                Author = book.Author,
-                ISBN = book.ISBN,
-                PublicationYear = book.PublicationYear,
-                Genre = book.Genre,
-                AvailableCopies = book.AvailableCopies
-            };
         }
     }
 }

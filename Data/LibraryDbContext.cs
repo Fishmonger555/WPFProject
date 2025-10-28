@@ -14,13 +14,15 @@ namespace Library.Data
     public class LibraryDbContext : DbContext
     {
         public DbSet<Book> Books { get; set; }
+        public DbSet<Author> Authors { get; set; }
+        public DbSet<Publisher> Publishers { get; set; }
 
-        public LibraryDbContext()
+        public LibraryDbContext(DbContextOptions<LibraryDbContext> options) : base(options)
         {
 
         }
 
-        public LibraryDbContext(DbContextOptions<LibraryDbContext> options) : base(options)
+        public LibraryDbContext()
         {
 
         }
@@ -41,6 +43,18 @@ namespace Library.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Author>()
+                .HasMany(a => a.Books)
+                .WithOne(b => b.Author)
+                .HasForeignKey(b => b.AuthorId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Publisher>()
+                .HasMany(p => p.Books)
+                .WithOne(b => b.Publisher)
+                .HasForeignKey(b => b.PublisherId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Book>()
                 .HasIndex(b => b.ISBN)

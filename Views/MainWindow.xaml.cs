@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Library.Services;
+using Library.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,7 +25,9 @@ namespace Library.Views
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = new ViewModels.MainWindowViewModel();
+            var databaseService = new SqlDatabaseService();
+            var viewModel = new MainWindowViewModel(databaseService, this);
+            this.DataContext = viewModel;
         }
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)

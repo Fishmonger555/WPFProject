@@ -1,60 +1,17 @@
-﻿using Library.Models;
-using Library.Services;
-using Library.ViewModels;
-using Library.Views;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using Library.Models;
+using Library.Services;
+using Library.Views;
+using Library.Commands;
 
 namespace Library.ViewModels
 {
-    public class MockDatabaseService : IDatabaseService
-    {
-        private List<Book> _books = new List<Book>();
-        private int _nextId = 1;
-
-        public void AddBook(Book book)
-        {
-            book.Id = _nextId++;
-            _books.Add(book.Clone());
-            Console.WriteLine($"Added Book: {book.Title} (ID: {book.Id})");
-        }
-
-        public void UpdateBook(Book book)
-        {
-            var existingBook = _books.FirstOrDefault(b => b.Id == book.Id);
-            if (existingBook != null)
-            {
-                existingBook.Title = book.Title;
-                existingBook.Author = book.Author;
-                existingBook.ISBN = book.ISBN;
-                existingBook.PublicationYear = book.PublicationYear;
-                existingBook.Genre = book.Genre;
-                existingBook.AvailableCopies = book.AvailableCopies;
-                Console.WriteLine($"Updated Book: {existingBook.Title} (ID: {existingBook.Id})");
-            }
-            else
-            {
-                AddBook(book);
-            }
-        }
-
-        public Book GetBookById(int id)
-        {
-            return _books.FirstOrDefault(b => b.Id == id)?.Clone();
-        }
-
-        public ObservableCollection<Book> GetAllBooks()
-        {
-            return new ObservableCollection<Book>(_books.Select(b => b.Clone()));
-        }
-    }
-
-
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         private string _statusMessage = "Ready";
@@ -88,34 +45,81 @@ namespace Library.ViewModels
                 _selectedBook = value;
                 OnPropertyChanged(nameof(SelectedBook));
                 ((RelayCommand)EditBookCommand).RaiseCanExecuteChanged();
-                ((RelayCommand)DeleteBookCommand).RaiseCanExecuteChanged(); // If you add delete later
+            }
+        }
+
+        private ObservableCollection<Author> _authors;
+        public ObservableCollection<Author> Authors
+        {
+            get { return _authors; }
+            set { _authors = value; OnPropertyChanged(nameof(Authors)); }
+        }
+
+        private Author _selectedAuthor;
+        public Author SelectedAuthor
+        {
+            get { return _selectedAuthor; }
+            set
+            {
+                _selectedAuthor = value;
+                OnPropertyChanged(nameof(SelectedAuthor));
+            }
+        }
+
+        private ObservableCollection<Publisher> _publishers;
+        public ObservableCollection<Publisher> Publishers
+        {
+            get { return _publishers; }
+            set { _publishers = value; OnPropertyChanged(nameof(Publishers)); }
+        }
+
+        private Publisher _selectedPublisher;
+        public Publisher SelectedPublisher
+        {
+            get { return _selectedPublisher; }
+            set
+            {
+                _selectedPublisher = value;
+                OnPropertyChanged(nameof(SelectedPublisher));
             }
         }
 
         public ICommand AddBookCommand { get; private set; }
         public ICommand EditBookCommand { get; private set; }
-        public ICommand DeleteBookCommand { get; private set; } // Later
         public ICommand ExitCommand { get; private set; }
 
+        public ICommand NavigateToAddAuthorCommand { get; private set; }
+        public ICommand NavigateToAddPublisherCommand { get; private set; }
 
         private readonly IDatabaseService _databaseService;
 
         public MainWindowViewModel()
+            : this(new MockDatabaseService(), null)
         {
-            _databaseService = new SqlDatabaseService();
+        }
+
+        public MainWindowViewModel(IDatabaseService databaseService, Window ownerWindow)
+        {
+            _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService), "Database service cannot be null.");
 
             LoadBooks();
+            LoadAuthors();
+            LoadPublishers();
 
             AddBookCommand = new RelayCommand(AddBook);
             EditBookCommand = new RelayCommand(EditBook, CanEditOrDeleteBook);
-            // DeleteBookCommand = new RelayCommand(DeleteBook, CanEditOrDeleteBook);
             ExitCommand = new RelayCommand(ExitApplication);
+
+            NavigateToAddAuthorCommand = new RelayCommand(NavigateToAddAuthor);
+            NavigateToAddPublisherCommand = new RelayCommand(NavigateToAddPublisher);
         }
 
         private void AddBook(object parameter)
         {
             var editViewModel = new BookEditViewModel(null, _databaseService, GetOwnerWindow());
-            var editWindow = new BookEditView(editViewModel);
+            var editWindow = new BookEditView();
+            editWindow.DataContext = editViewModel;
+            editWindow.Owner = GetOwnerWindow();
             editWindow.ShowDialog();
 
             LoadBooks();
@@ -126,7 +130,9 @@ namespace Library.ViewModels
             if (SelectedBook != null)
             {
                 var editViewModel = new BookEditViewModel(SelectedBook, _databaseService, GetOwnerWindow());
-                var editWindow = new BookEditView(editViewModel);
+                var editWindow = new BookEditView();
+                editWindow.DataContext = editViewModel;
+                editWindow.Owner = GetOwnerWindow();
                 editWindow.ShowDialog();
 
                 LoadBooks();
@@ -138,6 +144,18 @@ namespace Library.ViewModels
             return SelectedBook != null;
         }
 
+        private void NavigateToAddAuthor(object parameter)
+        {
+
+            MessageBox.Show("Navigate to Add Author functionality not yet implemented.");
+        }
+
+        private void NavigateToAddPublisher(object parameter)
+        {
+
+            MessageBox.Show("Navigate to Add Publisher functionality not yet implemented.");
+        }
+
         public void ExitApplication(object parameter)
         {
             Application.Current.Shutdown();
@@ -145,12 +163,45 @@ namespace Library.ViewModels
 
         private void LoadBooks()
         {
-            Books = _databaseService.GetAllBooks();
+            if (_databaseService != null)
+            {
+                Books = _databaseService.GetAllBooks();
+                SelectedBook = null;
+            }
+            else
+            {
+                Books = new ObservableCollection<Book>();
+                SelectedBook = null;
+                StatusMessage = "Error: Database service not initialized.";
+            }
+        }
+
+        private void LoadAuthors()
+        {
+            if (_databaseService != null)
+            {
+                Authors = _databaseService.GetAllAuthors();
+            }
+            else
+            {
+                Authors = new ObservableCollection<Author>();
+            }
+        }
+
+        private void LoadPublishers()
+        {
+            if (_databaseService != null)
+            {
+                Publishers = _databaseService.GetAllPublishers();
+            }
+            else
+            {
+                Publishers = new ObservableCollection<Publisher>();
+            }
         }
 
         private Window GetOwnerWindow()
         {
-
             return Application.Current.MainWindow;
         }
 

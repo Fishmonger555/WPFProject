@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Library.Models
 {
-    public class Book : INotifyPropertyChanged
+    public class Book : ICloneable, INotifyPropertyChanged
     {
         private int _id;
         [Key]
@@ -27,13 +26,13 @@ namespace Library.Models
             set { _title = value; OnPropertyChanged(nameof(Title)); }
         }
 
-        private string _author;
-        [Required(ErrorMessage = "Author is required.")]
-        [StringLength(150, ErrorMessage = "Author cannot be longer than 150 characters.")]
-        public string Author
+        private string _authorNameForDisplay;
+        [Required(ErrorMessage = "Author name is required.")]
+        [StringLength(150, ErrorMessage = "Author name cannot be longer than 150 characters.")]
+        public string AuthorNameForDisplay
         {
-            get { return _author; }
-            set { _author = value; OnPropertyChanged(nameof(Author)); }
+            get { return _authorNameForDisplay; }
+            set { _authorNameForDisplay = value; OnPropertyChanged(nameof(AuthorNameForDisplay)); }
         }
 
         private string _isbn;
@@ -70,10 +69,35 @@ namespace Library.Models
             set { _availableCopies = value; OnPropertyChanged(nameof(AvailableCopies)); }
         }
 
+        [ForeignKey("Author")]
+        public int? AuthorId { get; set; }
+
+        [ForeignKey("Publisher")]
+        public int? PublisherId { get; set; }
+
+        public virtual Author Author { get; set; }
+        public virtual Publisher Publisher { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public object Clone()
+        {
+            return new Book
+            {
+                Id = this.Id,
+                Title = this.Title,
+                AuthorId = this.AuthorId,
+                ISBN = this.ISBN,
+                PublicationYear = this.PublicationYear,
+                Genre = this.Genre,
+                AvailableCopies = this.AvailableCopies,
+                PublisherId = this.PublisherId,
+                //Publisher = this.Publisher // Deep clone for Publisher is complex
+            };
         }
     }
 }
