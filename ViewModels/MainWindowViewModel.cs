@@ -45,6 +45,8 @@ namespace Library.ViewModels
                 _selectedBook = value;
                 OnPropertyChanged(nameof(SelectedBook));
                 ((RelayCommand)EditBookCommand).RaiseCanExecuteChanged();
+                // If I add DeleteBookCommand, enable it here too
+                // ((RelayCommand)DeleteBookCommand).RaiseCanExecuteChanged();
             }
         }
 
@@ -84,6 +86,7 @@ namespace Library.ViewModels
             }
         }
 
+
         public ICommand AddBookCommand { get; private set; }
         public ICommand EditBookCommand { get; private set; }
         public ICommand ExitCommand { get; private set; }
@@ -92,11 +95,6 @@ namespace Library.ViewModels
         public ICommand NavigateToAddPublisherCommand { get; private set; }
 
         private readonly IDatabaseService _databaseService;
-
-        public MainWindowViewModel()
-            : this(new MockDatabaseService(), null)
-        {
-        }
 
         public MainWindowViewModel(IDatabaseService databaseService, Window ownerWindow)
         {
@@ -107,11 +105,16 @@ namespace Library.ViewModels
             LoadPublishers();
 
             AddBookCommand = new RelayCommand(AddBook);
-            EditBookCommand = new RelayCommand(EditBook, CanEditOrDeleteBook);
+            EditBookCommand = new RelayCommand(EditBook, CanEditBook);
             ExitCommand = new RelayCommand(ExitApplication);
 
             NavigateToAddAuthorCommand = new RelayCommand(NavigateToAddAuthor);
             NavigateToAddPublisherCommand = new RelayCommand(NavigateToAddPublisher);
+        }
+
+        public MainWindowViewModel()
+            : this(new MockDatabaseService(), null)
+        {
         }
 
         private void AddBook(object parameter)
@@ -120,40 +123,72 @@ namespace Library.ViewModels
             var editWindow = new BookEditView();
             editWindow.DataContext = editViewModel;
             editWindow.Owner = GetOwnerWindow();
-            editWindow.ShowDialog();
+            var result = editWindow.ShowDialog();
 
-            LoadBooks();
+            if (result == true)
+            {
+                LoadBooks();
+            }
         }
 
         private void EditBook(object parameter)
         {
             if (SelectedBook != null)
             {
-                var editViewModel = new BookEditViewModel(SelectedBook, _databaseService, GetOwnerWindow());
+                var bookClone = SelectedBook.Clone() as Book;
+                var editViewModel = new BookEditViewModel(bookClone, _databaseService, GetOwnerWindow());
                 var editWindow = new BookEditView();
                 editWindow.DataContext = editViewModel;
                 editWindow.Owner = GetOwnerWindow();
-                editWindow.ShowDialog();
+                var result = editWindow.ShowDialog();
 
-                LoadBooks();
+                if (result == true)
+                {
+                    var index = Books.IndexOf(SelectedBook);
+                    if (index != -1)
+                    {
+                        Books[index] = editViewModel.Book;
+                        LoadBooks();
+                    }
+                    else
+                    {
+                        LoadBooks();
+                    }
+                }
             }
         }
 
-        private bool CanEditOrDeleteBook(object parameter)
+        private bool CanEditBook(object parameter)
         {
             return SelectedBook != null;
         }
 
         private void NavigateToAddAuthor(object parameter)
         {
+            var authorEditViewModel = new AuthorEditViewModel(null, _databaseService, GetOwnerWindow());
+            var authorEditWindow = new AuthorEditView();
+            authorEditWindow.DataContext = authorEditViewModel;
+            authorEditWindow.Owner = GetOwnerWindow();
+            var result = authorEditWindow.ShowDialog();
 
-            MessageBox.Show("Navigate to Add Author functionality not yet implemented.");
+            if (result == true)
+            {
+                LoadAuthors();
+            }
         }
 
         private void NavigateToAddPublisher(object parameter)
         {
+            var publisherEditViewModel = new PublisherEditViewModel(null, _databaseService, GetOwnerWindow());
+            var publisherEditWindow = new PublisherEditView();
+            publisherEditWindow.DataContext = publisherEditViewModel;
+            publisherEditWindow.Owner = GetOwnerWindow();
+            var result = publisherEditWindow.ShowDialog();
 
-            MessageBox.Show("Navigate to Add Publisher functionality not yet implemented.");
+            if (result == true)
+            {
+                LoadPublishers();
+            }
         }
 
         public void ExitApplication(object parameter)
@@ -181,10 +216,12 @@ namespace Library.ViewModels
             if (_databaseService != null)
             {
                 Authors = _databaseService.GetAllAuthors();
+                SelectedAuthor = null;
             }
             else
             {
                 Authors = new ObservableCollection<Author>();
+                SelectedAuthor = null;
             }
         }
 
@@ -193,10 +230,12 @@ namespace Library.ViewModels
             if (_databaseService != null)
             {
                 Publishers = _databaseService.GetAllPublishers();
+                SelectedPublisher = null;
             }
             else
             {
                 Publishers = new ObservableCollection<Publisher>();
+                SelectedPublisher = null;
             }
         }
 

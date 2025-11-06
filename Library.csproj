@@ -221,6 +221,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Views\PublisherEditView.xaml.cs">
+      <DependentUpon>PublisherEditView.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Views\AuthorEditView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\BookEditView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -250,8 +257,13 @@
     <Compile Include="Services\IDatabaseService.cs" />
     <Compile Include="Services\MockDatabaseService.cs" />
     <Compile Include="Services\SqlDatabaseService.cs" />
+    <Compile Include="ViewModels\AuthorEditViewModel.cs" />
     <Compile Include="ViewModels\BookEditViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="ViewModels\PublisherEditViewModel.cs" />
+    <Compile Include="Views\AuthorEditView.xaml.cs">
+      <DependentUpon>AuthorEditView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\BookEditView.xaml.cs">
       <DependentUpon>BookEditView.xaml</DependentUpon>
     </Compile>
@@ -259,6 +271,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\PublisherEditView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

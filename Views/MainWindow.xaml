@@ -13,6 +13,10 @@
         <viewModels:MainWindowViewModel/>
     </Window.DataContext>-->
 
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Ctrl" Key="Q" Command="{Binding ExitCommand}" />
+    </Window.InputBindings>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -27,6 +31,12 @@
             <MenuItem Header="_Help">
                 <MenuItem Header="_About"/>
             </MenuItem>
+            <MenuItem Header="_Manage">
+                <MenuItem Header="Authors..." Command="{Binding NavigateToAddAuthorCommand}" />
+                <MenuItem Header="Publishers..." Command="{Binding NavigateToAddPublisherCommand}" />
+                <Separator />
+                <MenuItem Header="Books..." Command="{Binding AddBookCommand}" />
+            </MenuItem>
         </Menu>
 
         <Grid Grid.Row="1" Margin="5">
@@ -37,8 +47,8 @@
 
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5,5,5,10">
                 <Button Content="Add Book" Width="100" Margin="0,0,10,0" Command="{Binding AddBookCommand}"/>
-                <Button Content="Edit Book" Width="100" Margin="0,0,10,0" Command="{Binding EditBookCommand}" IsEnabled="{Binding CanEditOrDeleteBook}"/>
-                <!-- <Button Content="Delete Book" Width="100" Margin="0,0,10,0" Command="{Binding DeleteBookCommand}" IsEnabled="{Binding CanEditOrDeleteBook}"/> -->
+                <Button Content="Edit Book" Width="100" Margin="0,0,10,0" Command="{Binding EditBookCommand}" IsEnabled="{Binding EditBookCommand.CanExecute}"/>
+                <!-- <Button Content="Delete Book" Width="100" Margin="0,0,10,0" Command="{Binding DeleteBookCommand}" IsEnabled="{Binding EditBookCommand.CanExecute}"/> -->
             </StackPanel>
 
             <DataGrid Grid.Row="1" ItemsSource="{Binding Books}"
@@ -55,7 +65,8 @@
                     >
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="*"/>
-                    <DataGridTextColumn Header="Author" Binding="{Binding Author}" Width="*"/>
+                    <DataGridTextColumn Header="Author" Binding="{Binding Author.Name}" Width="*"/>
+                    <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher.Name}" Width="*"/>
                     <DataGridTextColumn Header="ISBN" Binding="{Binding ISBN}" Width="150"/>
                     <DataGridTextColumn Header="Pub. Year" Binding="{Binding PublicationYear}" Width="80"/>
                     <DataGridTextColumn Header="Copies" Binding="{Binding AvailableCopies}" Width="60"/>
